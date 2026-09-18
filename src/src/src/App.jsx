@@ -152,7 +152,7 @@ function Brand({ dark = false }) {
       >
         <Leaf className="h-5 w-5" />
       </span>
-      <span className="text-xl">sahaj</span>
+      <span className="text-xl">अन्नSetu</span>
     </Link>
   );
 }
