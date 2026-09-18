@@ -1,3 +1,4 @@
+import RestaurantImpact from "./RestaurantImpact";
 import { useEffect, useState } from "react";
 import {
   Link,
