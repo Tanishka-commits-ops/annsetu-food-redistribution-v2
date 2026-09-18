@@ -70,6 +70,8 @@ export const api = {
 
   impact: () => request("/impact"),
 
+  restaurantImpact: () => request("/restaurant/impact"),
+
   compliance: () => request("/compliance/handovers"),
 
   exportRegister: (format) =>
