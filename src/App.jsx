@@ -1,4 +1,4 @@
-import RestaurantImpact from "./RestaurantImpact";
+
 import { useEffect, useState } from "react";
 import {
   Link,
@@ -1315,8 +1315,7 @@ export default function App() {
       <Route path="/kitchen/listings/:id" element={<ListingPage />} />
 
       <Route path="/restaurant/offers" element={<RestaurantOffers />} />
-      <Route path="/restaurant/impact" element={<RestaurantImpact />} />
-
+      
       <Route path="/volunteer/pickup/:id" element={<VolunteerPickup />} />
 
       <Route path="/impact" element={<ImpactPage />} />
