@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Link,
@@ -44,28 +43,12 @@ import {
 } from "lucide-react";
 import { api, apiConfigured } from "./lib/api";
 
-const steps = [
-  "draft",
-  "confirmed",
-  "matching",
-  "claimed",
-  "in_transit",
-  "delivered"
-];
-
-const stepNames = {
-  draft: "Draft",
-  confirmed: "Confirmed",
-  matching: "Matching",
-  claimed: "Claimed",
-  in_transit: "In transit",
-  delivered: "Delivered"
-};
-
-const urgencyColors = {
-  high: "bg-red-50 text-red-700",
-  medium: "bg-amber-50 text-amber-700",
-  low: "bg-emerald-50 text-emerald-700"
+const backgroundImage = {
+  backgroundImage:
+    "linear-gradient(rgba(245,245,239,0.78), rgba(245,245,239,0.92)), url('/annsetu-intro.jpg')",
+  backgroundPosition: "center",
+  backgroundSize: "cover",
+  backgroundRepeat: "no-repeat"
 };
 
 const roles = {
@@ -92,6 +75,30 @@ const roles = {
   }
 };
 
+const steps = [
+  "draft",
+  "confirmed",
+  "matching",
+  "claimed",
+  "in_transit",
+  "delivered"
+];
+
+const stepNames = {
+  draft: "Draft",
+  confirmed: "Confirmed",
+  matching: "Matching",
+  claimed: "Claimed",
+  in_transit: "In transit",
+  delivered: "Delivered"
+};
+
+const urgencyColors = {
+  high: "bg-red-50 text-red-700",
+  medium: "bg-amber-50 text-amber-700",
+  low: "bg-emerald-50 text-emerald-700"
+};
+
 function unwrap(response) {
   return response?.data?.data ?? response?.data ?? response;
 }
@@ -100,7 +107,7 @@ function asList(value) {
   return Array.isArray(value) ? value : value?.items || value?.data || [];
 }
 
-function dateTime(value) {
+function formatDate(value) {
   if (!value) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
@@ -109,7 +116,7 @@ function dateTime(value) {
   }).format(new Date(value));
 }
 
-function formattedNumber(value) {
+function formatNumber(value) {
   return typeof value === "number"
     ? new Intl.NumberFormat("en-IN").format(value)
     : "—";
@@ -127,13 +134,13 @@ function useApi(loader, key) {
     setState((old) => ({ ...old, loading: true, error: null }));
 
     try {
-      const result = await loader();
+      const response = await loader();
 
       setState({
         loading: false,
-        data: unwrap(result),
+        data: unwrap(response),
         error: null,
-        offline: Boolean(result?.offline)
+        offline: Boolean(response?.offline)
       });
     } catch (error) {
       setState({
@@ -168,7 +175,7 @@ function Loading({ text = "Loading…" }) {
     <div className="grid min-h-[40vh] place-items-center">
       <div className="text-center">
         <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#173f2e]" />
-        <p className="mt-3 text-sm text-slate-500">{text}</p>
+        <p className="mt-3 text-sm text-[#667268]">{text}</p>
       </div>
     </div>
   );
@@ -189,11 +196,13 @@ function EmptyState({
         <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#667268]">
           {text}
         </p>
+
         {offline && (
           <p className="mt-3 text-xs text-[#7a857d]">
             Connect your backend API to load real data.
           </p>
         )}
+
         {action && <div className="mt-4">{action}</div>}
       </div>
     </div>
@@ -226,13 +235,13 @@ function InfoTip({ children }) {
   );
 }
 
-function RoleDropdown({ value }) {
+function RoleDropdown({ role }) {
   const navigate = useNavigate();
 
   return (
-    <label className="relative inline-flex items-center">
+    <div className="relative">
       <select
-        value={value}
+        value={role}
         onChange={(event) => navigate(`/login/${event.target.value}`)}
         className="appearance-none rounded-md border border-[#d6d6c9] bg-white py-2 pl-3 pr-8 text-xs font-semibold text-[#173f2e] outline-none"
       >
@@ -240,27 +249,21 @@ function RoleDropdown({ value }) {
         <option value="restaurant">Restaurant login</option>
         <option value="volunteer">Volunteer login</option>
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[#173f2e]" />
-    </label>
+      <ChevronDown className="pointer-events-none absolute right-2 top-2 h-4 w-4 text-[#173f2e]" />
+    </div>
   );
 }
 
 function RolePicker() {
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4">
+    <main
+      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
+      style={backgroundImage}
+    >
       <div className="w-full max-w-[430px]">
-        <div className="mb-6 text-center">
+        <div className="mb-7 text-center">
           <Brand />
         </div>
-
-        <img
-          src="/annsetu-intro.jpg"
-          alt="Food redistribution and community support"
-          className="mb-5 h-44 w-full rounded-xl object-cover shadow-sm"
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-          }}
-        />
 
         <section className="card p-7">
           <h1 className="text-2xl">Who’s signing in?</h1>
@@ -294,7 +297,7 @@ function RolePicker() {
           </div>
         </section>
 
-        <p className="mt-4 text-center text-xs text-[#7a857d]">
+        <p className="mt-4 text-center text-xs text-[#667268]">
           FSSAI-aligned food redistribution · verified handovers
         </p>
       </div>
@@ -340,11 +343,14 @@ function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4">
+    <main
+      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
+      style={backgroundImage}
+    >
       <div className="w-full max-w-[430px]">
         <div className="mb-7 flex items-center justify-between">
           <Brand />
-          <RoleDropdown value={role || "kitchen"} />
+          <RoleDropdown role={role || "kitchen"} />
         </div>
 
         <form onSubmit={signIn} className="card p-7">
@@ -408,7 +414,10 @@ function SignOutPage() {
   }, []);
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4">
+    <main
+      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
+      style={backgroundImage}
+    >
       <section className="card w-full max-w-[430px] p-7 text-center">
         <ShieldCheck className="mx-auto h-9 w-9 text-[#173f2e]" />
         <h1 className="mt-4 text-2xl">You are signed out</h1>
@@ -435,12 +444,10 @@ function Shell({ title, subtitle, role, children, action }) {
       : role === "restaurant"
       ? [
           ["/restaurant/offers", "Offers", HandHeart],
-          ["/impact", "Impact", Sparkles],
           ["/signout", "Sign out", LogIn]
         ]
       : [
           ["/volunteer/pickup/assigned", "My pickup", Truck],
-          ["/impact", "Impact", Sparkles],
           ["/signout", "Sign out", LogIn]
         ];
 
@@ -452,6 +459,7 @@ function Shell({ title, subtitle, role, children, action }) {
             <h1 className="text-[25px]">{title}</h1>
             <p className="text-xs text-[#667268]">{subtitle}</p>
           </div>
+
           <div className="flex items-center gap-2">
             {action}
             <Link to="/signout" className="btn-secondary px-3 py-2 text-xs">
@@ -617,7 +625,7 @@ function KitchenDashboard() {
 
                     <small className="mt-1 block text-xs text-[#667268]">
                       {listing.quantity} {listing.unit} · pickup by{" "}
-                      {dateTime(listing.pickupBy)}
+                      {formatDate(listing.pickupBy)}
                     </small>
                   </span>
 
@@ -896,7 +904,7 @@ function ListingPage() {
 
               <p className="mt-1 text-sm text-[#667268]">
                 {listing.quantity} {listing.unit} · pickup by{" "}
-                {dateTime(listing.pickupBy)}
+                {formatDate(listing.pickupBy)}
               </p>
             </div>
 
@@ -994,7 +1002,7 @@ function RestaurantOffers() {
               </p>
 
               <p className="mt-1 text-xs text-[#667268]">
-                Pickup by {dateTime(offer.pickupBy)}
+                Pickup by {formatDate(offer.pickupBy)}
               </p>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
@@ -1034,7 +1042,7 @@ function VolunteerPickup() {
     event.preventDefault();
 
     if (otp.length !== 4) {
-      setMessage("Enter the four-digit code from the recipient.");
+      setMessage("Enter the four-digit code from the restaurant.");
       return;
     }
 
@@ -1125,13 +1133,21 @@ function ImpactPage() {
           {title}
           <InfoTip>{note}</InfoTip>
         </p>
-        <p className="mt-2 font-serif text-3xl">{value}</p>
+
+        <div className="mt-2 flex items-center justify-between">
+          <p className="font-serif text-3xl">{value}</p>
+          <Icon className="h-5 w-5 text-[#173f2e]" />
+        </div>
       </div>
     );
   }
 
   return (
-    <Shell title="Impact" subtitle="Every figure explains how it was calculated" role="kitchen">
+    <Shell
+      title="Impact"
+      subtitle="Every figure explains how it was calculated"
+      role="kitchen"
+    >
       {resource.loading ? (
         <Loading text="Calculating impact…" />
       ) : resource.error ? (
@@ -1141,7 +1157,7 @@ function ImpactPage() {
           <div className="grid grid-cols-2 gap-3">
             {metric(
               "Meals redistributed",
-              formattedNumber(impact.mealsRedistributed),
+              formatNumber(impact.mealsRedistributed),
               UtensilsCrossed,
               impact.computations?.mealsRedistributed ||
                 "Verified delivered quantity divided by the configured serving size."
@@ -1150,7 +1166,7 @@ function ImpactPage() {
             {metric(
               "Waste prevented",
               impact.wastePreventedKg != null
-                ? `${formattedNumber(impact.wastePreventedKg)} kg`
+                ? `${formatNumber(impact.wastePreventedKg)} kg`
                 : "—",
               Leaf,
               impact.computations?.wastePreventedKg ||
@@ -1160,7 +1176,7 @@ function ImpactPage() {
             {metric(
               "Rupees saved",
               impact.rupeesSaved != null
-                ? `₹${formattedNumber(impact.rupeesSaved)}`
+                ? `₹${formatNumber(impact.rupeesSaved)}`
                 : "—",
               Sparkles,
               impact.computations?.rupeesSaved ||
@@ -1269,7 +1285,7 @@ function CompliancePage() {
               {rows.map((row) => (
                 <tr key={row.id} className="border-t">
                   <td className="p-3">{row.reference || row.id}</td>
-                  <td className="p-3">{dateTime(row.deliveredAt)}</td>
+                  <td className="p-3">{formatDate(row.deliveredAt)}</td>
                   <td className="p-3">
                     {row.kitchen?.name || row.kitchenName}
                   </td>
@@ -1292,7 +1308,10 @@ function CompliancePage() {
 
 function NotFound() {
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4">
+    <main
+      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
+      style={backgroundImage}
+    >
       <section className="card p-7 text-center">
         <h1 className="text-2xl">Page not found</h1>
         <Link to="/login" className="btn-primary mt-5">
@@ -1315,7 +1334,7 @@ export default function App() {
       <Route path="/kitchen/listings/:id" element={<ListingPage />} />
 
       <Route path="/restaurant/offers" element={<RestaurantOffers />} />
-      
+
       <Route path="/volunteer/pickup/:id" element={<VolunteerPickup />} />
 
       <Route path="/impact" element={<ImpactPage />} />
