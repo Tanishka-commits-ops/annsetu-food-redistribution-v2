@@ -45,7 +45,7 @@ import { api, apiConfigured } from "./lib/api";
 
 const backgroundImage = {
   backgroundImage:
-    "linear-gradient(rgba(245,245,239,0.78), rgba(245,245,239,0.92)), url('/annsetu-intro.jpg')",
+    "linear-gradient(rgba(245,245,239,0.78), rgba(245,245,239,0.92)), url('/annsetu-intro.jpg.jpg')",
   backgroundPosition: "center",
   backgroundSize: "cover",
   backgroundRepeat: "no-repeat"
