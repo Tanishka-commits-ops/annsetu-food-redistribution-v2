@@ -1,1 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+@layer base {
+  * {
+    @apply border-slate-200;
+  }
+
+  body {
+    @apply m-0 bg-paper font-sans text-ink antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl border border-white bg-white p-5 shadow-soft;
+  }
+
+  .card-muted {
+    @apply rounded-3xl border bg-white/70 p-5;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .page-title {
+    @apply text-3xl font-semibold tracking-[-0.04em] text-ink sm:text-4xl;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-forest px-4 py-3 text-sm font-semibold text-white transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 text-sm font-semibold text-ink transition hover:border-moss hover:bg-slate-50 disabled:opacity-50;
+  }
+
+  .input {
+    @apply mt-2 w-full rounded-xl border bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-moss focus:ring-4 focus:ring-moss/10;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold;
+  }
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 1rem;
+}
