@@ -306,7 +306,6 @@ function RolePicker() {
 }
 
 function LoginPage() {
-  function LoginPage() {
   const { role } = useParams();
   const navigate = useNavigate();
   const selectedRole = roles[role] || roles.kitchen;
