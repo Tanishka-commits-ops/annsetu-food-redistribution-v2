@@ -23,3 +23,9 @@
 }
 
 .leaflet-container { height: 100%; width: 100%; border-radius: .5rem; }
+ /* Ivory login and role-selection boxes */
+main[style] .card {
+  background-color: #fffaf0;
+  border-color: #eadfca;
+  box-shadow: 0 12px 30px rgba(65, 52, 27, 0.12);
+}
