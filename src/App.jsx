@@ -306,6 +306,7 @@ function RolePicker() {
 }
 
 function LoginPage() {
+  function LoginPage() {
   const { role } = useParams();
   const navigate = useNavigate();
   const selectedRole = roles[role] || roles.kitchen;
@@ -368,10 +369,14 @@ function LoginPage() {
           </p>
 
           <label className="mt-6 block text-xs font-semibold">
-            Phone number or email
+            Email address
             <input
               required
+              type="email"
+              pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+              title="Enter a valid email address, for example name@organisation.org"
               className="input"
+              placeholder="name@organisation.org"
               value={form.email}
               onChange={(event) =>
                 setForm({ ...form, email: event.target.value })
@@ -384,7 +389,9 @@ function LoginPage() {
             <input
               required
               type="password"
+              minLength="6"
               className="input"
+              placeholder="Enter password"
               value={form.password}
               onChange={(event) =>
                 setForm({ ...form, password: event.target.value })
@@ -405,7 +412,6 @@ function LoginPage() {
     </main>
   );
 }
-
 function SignOutPage() {
   const navigate = useNavigate();
 
