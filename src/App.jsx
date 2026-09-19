@@ -43,9 +43,11 @@ import {
 } from "lucide-react";
 import { api, apiConfigured } from "./lib/api";
 
-const backgroundImage = {
+const cream = "#FFF8E7";
+
+const backgroundStyle = {
   backgroundImage:
-    "linear-gradient(rgba(245,245,239,0.78), rgba(245,245,239,0.92)), url('/annsetu-intro.jpg.jpg')",
+    "linear-gradient(rgba(245,245,239,0.38), rgba(245,245,239,0.62)), url('/annsetu-intro.jpg.jpg')",
   backgroundPosition: "center",
   backgroundSize: "cover",
   backgroundRepeat: "no-repeat"
@@ -54,28 +56,25 @@ const backgroundImage = {
 const roles = {
   kitchen: {
     title: "Kitchen",
-    loginTitle: "Sign in as kitchen",
     description: "Report surplus, view forecasts, and manage food handovers.",
     icon: Store,
     home: "/kitchen/dashboard"
   },
   restaurant: {
     title: "Restaurant",
-    loginTitle: "Sign in as restaurant",
-    description: "Review nearby food offers and accept food for your organisation.",
+    description: "Review nearby food offers and accept available food.",
     icon: HandHeart,
     home: "/restaurant/offers"
   },
   volunteer: {
     title: "Volunteer",
-    loginTitle: "Sign in as volunteer",
-    description: "Pick up assigned food and verify delivery with OTP.",
+    description: "Pick up assigned food and verify delivery using OTP.",
     icon: Truck,
     home: "/volunteer/pickup/assigned"
   }
 };
 
-const steps = [
+const stages = [
   "draft",
   "confirmed",
   "matching",
@@ -84,7 +83,7 @@ const steps = [
   "delivered"
 ];
 
-const stepNames = {
+const stageNames = {
   draft: "Draft",
   confirmed: "Confirmed",
   matching: "Matching",
@@ -93,7 +92,7 @@ const stepNames = {
   delivered: "Delivered"
 };
 
-const urgencyColors = {
+const urgencyStyles = {
   high: "bg-red-50 text-red-700",
   medium: "bg-amber-50 text-amber-700",
   low: "bg-emerald-50 text-emerald-700"
@@ -103,7 +102,7 @@ function unwrap(response) {
   return response?.data?.data ?? response?.data ?? response;
 }
 
-function asList(value) {
+function list(value) {
   return Array.isArray(value) ? value : value?.items || value?.data || [];
 }
 
@@ -134,13 +133,13 @@ function useApi(loader, key) {
     setState((old) => ({ ...old, loading: true, error: null }));
 
     try {
-      const response = await loader();
+      const result = await loader();
 
       setState({
         loading: false,
-        data: unwrap(response),
+        data: unwrap(result),
         error: null,
-        offline: Boolean(response?.offline)
+        offline: Boolean(result?.offline)
       });
     } catch (error) {
       setState({
@@ -196,13 +195,11 @@ function EmptyState({
         <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#667268]">
           {text}
         </p>
-
         {offline && (
           <p className="mt-3 text-xs text-[#7a857d]">
             Connect your backend API to load real data.
           </p>
         )}
-
         {action && <div className="mt-4">{action}</div>}
       </div>
     </div>
@@ -243,12 +240,13 @@ function RoleDropdown({ role }) {
       <select
         value={role}
         onChange={(event) => navigate(`/login/${event.target.value}`)}
-        className="appearance-none rounded-md border border-[#d6d6c9] bg-white py-2 pl-3 pr-8 text-xs font-semibold text-[#173f2e] outline-none"
+        className="appearance-none rounded-md border border-[#d6d6c9] bg-white py-2 pl-3 pr-8 text-xs font-semibold text-[#173f2e]"
       >
-        <option value="kitchen">Kitchen login</option>
-        <option value="restaurant">Restaurant login</option>
-        <option value="volunteer">Volunteer login</option>
+        <option value="kitchen">Kitchen</option>
+        <option value="restaurant">Restaurant</option>
+        <option value="volunteer">Volunteer</option>
       </select>
+
       <ChevronDown className="pointer-events-none absolute right-2 top-2 h-4 w-4 text-[#173f2e]" />
     </div>
   );
@@ -257,15 +255,18 @@ function RoleDropdown({ role }) {
 function RolePicker() {
   return (
     <main
-      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
-      style={backgroundImage}
+      className="grid min-h-screen place-items-center p-4"
+      style={backgroundStyle}
     >
       <div className="w-full max-w-[430px]">
         <div className="mb-7 text-center">
           <Brand />
         </div>
 
-        <section className="card p-7">
+        <section
+          className="rounded-xl border border-[#eadfca] p-7 shadow-xl"
+          style={{ backgroundColor: cream }}
+        >
           <h1 className="text-2xl">Who’s signing in?</h1>
           <p className="mt-1 text-sm text-[#667268]">
             Choose the workspace for this device.
@@ -279,7 +280,7 @@ function RolePicker() {
                 <Link
                   key={key}
                   to={`/login/${key}`}
-                  className="flex items-center gap-3 rounded-lg border p-3 transition hover:border-[#173f2e] hover:bg-[#eef3ec]"
+                  className="flex items-center gap-3 rounded-lg border border-[#ddd4bf] p-3 transition hover:border-[#173f2e] hover:bg-[#f5eedc]"
                 >
                   <span className="grid h-10 w-10 place-items-center rounded bg-[#e8eee5] text-[#173f2e]">
                     <Icon className="h-4 w-4" />
@@ -297,7 +298,7 @@ function RolePicker() {
           </div>
         </section>
 
-        <p className="mt-4 text-center text-xs text-[#667268]">
+        <p className="mt-4 text-center text-xs text-[#324b3d]">
           FSSAI-aligned food redistribution · verified handovers
         </p>
       </div>
@@ -305,25 +306,52 @@ function RolePicker() {
   );
 }
 
-function LoginPage() {
+function AuthPage({ mode }) {
   const { role } = useParams();
   const navigate = useNavigate();
   const selectedRole = roles[role] || roles.kitchen;
   const Icon = selectedRole.icon;
+  const isSignup = mode === "signup";
 
   const [form, setForm] = useState({
+    fullName: "",
+    organisationName: "",
     email: "",
-    password: ""
+    phone: "",
+    password: "",
+    confirmPassword: ""
   });
 
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  async function signIn(event) {
+  function update(name, value) {
+    setForm({ ...form, [name]: value });
+  }
+
+  async function submit(event) {
     event.preventDefault();
-    setError("");
+    setMessage("");
+
+    if (isSignup && form.password !== form.confirmPassword) {
+      setMessage("Passwords do not match.");
+      return;
+    }
 
     try {
-      const response = await api.login({ ...form, role });
+      const response = isSignup
+        ? await api.signup({
+            fullName: form.fullName,
+            organisationName: form.organisationName,
+            email: form.email,
+            phone: form.phone,
+            password: form.password,
+            role
+          })
+        : await api.login({
+            email: form.email,
+            password: form.password,
+            role
+          });
 
       if (response.offline) {
         navigate(selectedRole.home);
@@ -337,15 +365,15 @@ function LoginPage() {
       }
 
       navigate(selectedRole.home);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setMessage(error.message);
     }
   }
 
   return (
     <main
-      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
-      style={backgroundImage}
+      className="grid min-h-screen place-items-center p-4"
+      style={backgroundStyle}
     >
       <div className="w-full max-w-[430px]">
         <div className="mb-7 flex items-center justify-between">
@@ -353,33 +381,77 @@ function LoginPage() {
           <RoleDropdown role={role || "kitchen"} />
         </div>
 
-        <form onSubmit={signIn} className="card p-7">
+        <form
+          onSubmit={submit}
+          className="rounded-xl border border-[#eadfca] p-7 shadow-xl"
+          style={{ backgroundColor: cream }}
+        >
           <Link to="/login" className="text-xs text-[#667268]">
             ← Change role
           </Link>
 
           <div className="mt-5 flex items-center gap-2">
             <Icon className="h-5 w-5 text-[#173f2e]" />
-            <h1 className="text-2xl">{selectedRole.loginTitle}</h1>
+            <h1 className="text-2xl">
+              {isSignup
+                ? `Create ${selectedRole.title.toLowerCase()} account`
+                : `Sign in as ${selectedRole.title.toLowerCase()}`}
+            </h1>
           </div>
 
           <p className="mt-2 text-sm text-[#667268]">
             {selectedRole.description}
           </p>
 
-          <label className="mt-6 block text-xs font-semibold">
+          {isSignup && (
+            <>
+              <label className="mt-5 block text-xs font-semibold">
+                Full name
+                <input
+                  required
+                  className="input"
+                  value={form.fullName}
+                  onChange={(event) => update("fullName", event.target.value)}
+                />
+              </label>
+
+              {role !== "volunteer" && (
+                <label className="mt-4 block text-xs font-semibold">
+                  Organisation name
+                  <input
+                    required
+                    className="input"
+                    value={form.organisationName}
+                    onChange={(event) =>
+                      update("organisationName", event.target.value)
+                    }
+                  />
+                </label>
+              )}
+
+              <label className="mt-4 block text-xs font-semibold">
+                Phone number
+                <input
+                  required
+                  type="tel"
+                  className="input"
+                  placeholder="9876543210"
+                  value={form.phone}
+                  onChange={(event) => update("phone", event.target.value)}
+                />
+              </label>
+            </>
+          )}
+
+          <label className="mt-5 block text-xs font-semibold">
             Email address
             <input
               required
               type="email"
-              pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-              title="Enter a valid email address, for example name@organisation.org"
               className="input"
               placeholder="name@organisation.org"
               value={form.email}
-              onChange={(event) =>
-                setForm({ ...form, email: event.target.value })
-              }
+              onChange={(event) => update("email", event.target.value)}
             />
           </label>
 
@@ -390,27 +462,55 @@ function LoginPage() {
               type="password"
               minLength="6"
               className="input"
-              placeholder="Enter password"
+              placeholder="At least 6 characters"
               value={form.password}
-              onChange={(event) =>
-                setForm({ ...form, password: event.target.value })
-              }
+              onChange={(event) => update("password", event.target.value)}
             />
           </label>
 
-          {error && (
-            <p className="mt-3 text-xs text-red-700">{error}</p>
+          {isSignup && (
+            <label className="mt-4 block text-xs font-semibold">
+              Confirm password
+              <input
+                required
+                type="password"
+                minLength="6"
+                className="input"
+                value={form.confirmPassword}
+                onChange={(event) =>
+                  update("confirmPassword", event.target.value)
+                }
+              />
+            </label>
+          )}
+
+          {message && (
+            <p className="mt-3 text-xs text-red-700">{message}</p>
           )}
 
           <button className="btn-primary mt-5 w-full">
-            <LogIn className="h-4 w-4" />
-            Sign in
+            {isSignup ? "Create account" : "Sign in"}
           </button>
+
+          <p className="mt-5 text-center text-xs text-[#667268]">
+            {isSignup ? "Already registered?" : "New to अन्नSetu?"}{" "}
+            <Link
+              to={
+                isSignup
+                  ? `/login/${role}`
+                  : `/signup/${role}`
+              }
+              className="font-bold text-[#173f2e]"
+            >
+              {isSignup ? "Sign in" : "Create an account"}
+            </Link>
+          </p>
         </form>
       </div>
     </main>
   );
 }
+
 function SignOutPage() {
   const navigate = useNavigate();
 
@@ -420,10 +520,13 @@ function SignOutPage() {
 
   return (
     <main
-      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
-      style={backgroundImage}
+      className="grid min-h-screen place-items-center p-4"
+      style={backgroundStyle}
     >
-      <section className="card w-full max-w-[430px] p-7 text-center">
+      <section
+        className="w-full max-w-[430px] rounded-xl border border-[#eadfca] p-7 text-center shadow-xl"
+        style={{ backgroundColor: cream }}
+      >
         <ShieldCheck className="mx-auto h-9 w-9 text-[#173f2e]" />
         <h1 className="mt-4 text-2xl">You are signed out</h1>
         <p className="mt-2 text-sm text-[#667268]">
@@ -500,7 +603,7 @@ function KitchenDashboard() {
   const resource = useApi(api.kitchenDashboard, "kitchen-dashboard");
   const navigate = useNavigate();
   const dashboard = resource.data || {};
-  const listings = asList(dashboard.listings);
+  const listings = list(dashboard.listings);
 
   return (
     <Shell
@@ -510,7 +613,7 @@ function KitchenDashboard() {
       action={
         <button
           onClick={() => navigate("/kitchen/report-surplus?urgent=1")}
-          className="btn-primary bg-[#c9981e] text-[#173f2e] hover:bg-[#b88a18]"
+          className="btn-primary bg-[#c9981e] text-[#173f2e]"
         >
           <Zap className="h-4 w-4" />
           Urgent
@@ -585,7 +688,7 @@ function KitchenDashboard() {
               </ul>
             ) : (
               <p className="mt-3 text-sm text-[#667268]">
-                Reasons will appear alongside your real forecast.
+                Reasons will appear with real forecast data.
               </p>
             )}
           </section>
@@ -621,8 +724,8 @@ function KitchenDashboard() {
 
                     <span
                       className={`pill ml-2 ${
-                        urgencyColors[listing.urgency?.toLowerCase()] ||
-                        urgencyColors.low
+                        urgencyStyles[listing.urgency?.toLowerCase()] ||
+                        urgencyStyles.low
                       }`}
                     >
                       {listing.urgency || "Low"} urgency
@@ -635,7 +738,7 @@ function KitchenDashboard() {
                   </span>
 
                   <span className="text-xs">
-                    {stepNames[listing.status] || "Matching"} ›
+                    {stageNames[listing.status] || "Matching"} ›
                   </span>
                 </Link>
               ))
@@ -671,26 +774,22 @@ function ReportSurplus() {
 
   const [message, setMessage] = useState("");
 
-  function update(name, value) {
-    setForm({ ...form, [name]: value });
-  }
-
   async function submit(event) {
     event.preventDefault();
 
     try {
-      const result = await api.createListing({
+      const response = await api.createListing({
         ...form,
         quantity: Number(form.quantity),
         urgency: urgent ? "high" : "medium"
       });
 
-      if (result.offline) {
+      if (response.offline) {
         setMessage("This form is ready for the real backend API.");
         return;
       }
 
-      navigate(`/kitchen/listings/${unwrap(result).id}`);
+      navigate(`/kitchen/listings/${unwrap(response).id}`);
     } catch (error) {
       setMessage(error.message);
     }
@@ -710,7 +809,9 @@ function ReportSurplus() {
             className="input"
             placeholder="e.g. Vegetable pulao"
             value={form.foodItem}
-            onChange={(event) => update("foodItem", event.target.value)}
+            onChange={(event) =>
+              setForm({ ...form, foodItem: event.target.value })
+            }
           />
         </label>
 
@@ -723,7 +824,9 @@ function ReportSurplus() {
               min="0"
               className="input"
               value={form.quantity}
-              onChange={(event) => update("quantity", event.target.value)}
+              onChange={(event) =>
+                setForm({ ...form, quantity: event.target.value })
+              }
             />
           </label>
 
@@ -732,7 +835,9 @@ function ReportSurplus() {
             <select
               className="input"
               value={form.unit}
-              onChange={(event) => update("unit", event.target.value)}
+              onChange={(event) =>
+                setForm({ ...form, unit: event.target.value })
+              }
             >
               <option>kg</option>
               <option>servings</option>
@@ -748,7 +853,9 @@ function ReportSurplus() {
               type="datetime-local"
               className="input"
               value={form.cookedAt}
-              onChange={(event) => update("cookedAt", event.target.value)}
+              onChange={(event) =>
+                setForm({ ...form, cookedAt: event.target.value })
+              }
             />
           </label>
 
@@ -759,7 +866,9 @@ function ReportSurplus() {
               type="datetime-local"
               className="input"
               value={form.pickupBy}
-              onChange={(event) => update("pickupBy", event.target.value)}
+              onChange={(event) =>
+                setForm({ ...form, pickupBy: event.target.value })
+              }
             />
           </label>
         </div>
@@ -770,7 +879,9 @@ function ReportSurplus() {
             className="input min-h-20"
             placeholder="Allergens, packing, gate instructions…"
             value={form.notes}
-            onChange={(event) => update("notes", event.target.value)}
+            onChange={(event) =>
+              setForm({ ...form, notes: event.target.value })
+            }
           />
         </label>
 
@@ -790,26 +901,26 @@ function ReportSurplus() {
 }
 
 function Timeline({ current = "draft" }) {
-  const activeStep = Math.max(0, steps.indexOf(current));
+  const activeIndex = Math.max(0, stages.indexOf(current));
 
   return (
     <div className="mt-5 grid gap-3 sm:grid-cols-6">
-      {steps.map((step, index) => {
-        const done = index < activeStep;
-        const active = index === activeStep;
+      {stages.map((stage, index) => {
+        const complete = index < activeIndex;
+        const active = index === activeIndex;
 
         return (
-          <div key={step} className="flex gap-2 sm:block">
+          <div key={stage} className="flex gap-2 sm:block">
             <span
               className={`grid h-7 w-7 place-items-center rounded-full text-xs ${
                 active
                   ? "bg-[#173f2e] text-white ring-4 ring-[#dce8d8]"
-                  : done
+                  : complete
                   ? "bg-[#dce8d8] text-[#173f2e]"
                   : "bg-[#ecece6] text-[#7a857d]"
               }`}
             >
-              {done ? <Check className="h-4 w-4" /> : index + 1}
+              {complete ? <Check className="h-4 w-4" /> : index + 1}
             </span>
 
             <span
@@ -817,7 +928,7 @@ function Timeline({ current = "draft" }) {
                 active ? "font-bold text-[#173f2e]" : "text-[#667268]"
               }`}
             >
-              {stepNames[step]}
+              {stageNames[stage]}
             </span>
           </div>
         );
@@ -832,21 +943,21 @@ function FoodMap({ pickup, recipient }) {
       <EmptyState
         Icon={MapPin}
         title="Map awaits real locations"
-        text="Pickup and recipient pins will appear when the backend sends latitude and longitude."
+        text="Pickup and recipient pins will appear when the backend sends coordinates."
       />
     );
   }
 
-  const pickupPosition = [pickup.latitude, pickup.longitude];
+  const position = [pickup.latitude, pickup.longitude];
 
   return (
-    <MapContainer center={pickupPosition} zoom={13} scrollWheelZoom={false}>
+    <MapContainer center={position} zoom={13} scrollWheelZoom={false}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <Marker position={pickupPosition}>
+      <Marker position={position}>
         <Popup>{pickup.address || "Kitchen pickup"}</Popup>
       </Marker>
 
@@ -941,7 +1052,7 @@ function ListingPage() {
 
 function RestaurantOffers() {
   const resource = useApi(api.recipientOffers, "restaurant-offers");
-  const offers = asList(resource.data);
+  const offers = list(resource.data);
   const [message, setMessage] = useState("");
 
   async function decide(id, decision) {
@@ -1226,7 +1337,7 @@ function ImpactPage() {
 
 function CompliancePage() {
   const resource = useApi(api.compliance, "compliance");
-  const rows = asList(resource.data);
+  const rows = list(resource.data);
 
   function download(format) {
     if (apiConfigured) {
@@ -1314,10 +1425,13 @@ function CompliancePage() {
 function NotFound() {
   return (
     <main
-      className="grid min-h-screen place-items-center bg-[#f5f5ef] p-4"
-      style={backgroundImage}
+      className="grid min-h-screen place-items-center p-4"
+      style={backgroundStyle}
     >
-      <section className="card p-7 text-center">
+      <section
+        className="rounded-xl border border-[#eadfca] p-7 text-center shadow-xl"
+        style={{ backgroundColor: cream }}
+      >
         <h1 className="text-2xl">Page not found</h1>
         <Link to="/login" className="btn-primary mt-5">
           Go to login
@@ -1331,7 +1445,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<RolePicker />} />
-      <Route path="/login/:role" element={<LoginPage />} />
+      <Route path="/login/:role" element={<AuthPage mode="login" />} />
+      <Route path="/signup/:role" element={<AuthPage mode="signup" />} />
       <Route path="/signout" element={<SignOutPage />} />
 
       <Route path="/kitchen/dashboard" element={<KitchenDashboard />} />
