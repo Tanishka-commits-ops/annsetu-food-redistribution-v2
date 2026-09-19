@@ -3,9 +3,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
 export const apiConfigured = Boolean(BASE_URL);
 
 async function request(path, options = {}) {
-  if (!BASE_URL) {
-    return { offline: true, data: null };
-  }
+  if (!BASE_URL) return { offline: true, data: null };
 
   const token = localStorage.getItem("annsetu_access_token");
 
@@ -23,9 +21,7 @@ async function request(path, options = {}) {
     throw new Error(body.message || "Something went wrong.");
   }
 
-  if (response.status === 204) {
-    return { data: null };
-  }
+  if (response.status === 204) return { data: null };
 
   return { data: await response.json() };
 }
@@ -33,6 +29,12 @@ async function request(path, options = {}) {
 export const api = {
   login: (body) =>
     request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+
+  signup: (body) =>
+    request("/auth/signup", {
       method: "POST",
       body: JSON.stringify(body)
     }),
@@ -69,8 +71,6 @@ export const api = {
     }),
 
   impact: () => request("/impact"),
-
-  restaurantImpact: () => request("/restaurant/impact"),
 
   compliance: () => request("/compliance/handovers"),
 
