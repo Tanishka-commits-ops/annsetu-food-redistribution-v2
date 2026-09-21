@@ -39,7 +39,9 @@ import {
   Truck,
   UtensilsCrossed,
   XCircle,
-  Zap
+  Zap,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { api, apiConfigured } from "./lib/api";
 
@@ -323,6 +325,8 @@ function AuthPage({ mode }) {
   });
 
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   function update(name, value) {
     setForm({ ...form, [name]: value });
@@ -457,30 +461,64 @@ function AuthPage({ mode }) {
 
           <label className="mt-4 block text-xs font-semibold">
             Password
-            <input
-              required
-              type="password"
-              minLength="6"
-              className="input"
-              placeholder="At least 6 characters"
-              value={form.password}
-              onChange={(event) => update("password", event.target.value)}
-            />
+            <div className="relative mt-1.5">
+              <input
+                required
+                type={showPassword ? "text" : "password"}
+                minLength="6"
+                className="input mt-0 pr-10"
+                placeholder="At least 6 characters"
+                value={form.password}
+                onChange={(event) => update("password", event.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667268] hover:text-[#173f2e]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </label>
 
           {isSignup && (
             <label className="mt-4 block text-xs font-semibold">
               Confirm password
-              <input
-                required
-                type="password"
-                minLength="6"
-                className="input"
-                value={form.confirmPassword}
-                onChange={(event) =>
-                  update("confirmPassword", event.target.value)
-                }
-              />
+              <div className="relative mt-1.5">
+                <input
+                  required
+                  type={showConfirmPassword ? "text" : "password"}
+                  minLength="6"
+                  className="input mt-0 pr-10"
+                  value={form.confirmPassword}
+                  onChange={(event) =>
+                    update("confirmPassword", event.target.value)
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667268] hover:text-[#173f2e]"
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </label>
           )}
 
